@@ -41,7 +41,7 @@
 #define NUM_TIMEOUTS	2
 
 /** Chunk size in bytes in which data is transferred. */
-#define CHUNK_SIZE	2048
+static size_t CHUNK_SIZE = 2048;
 
 static int initialize_handle(struct jaylink_device_handle *devh)
 {
@@ -126,6 +126,16 @@ static int initialize_handle(struct jaylink_device_handle *devh)
 
 	log_dbg(ctx, "Using endpoint %02x (IN) and %02x (OUT).",
 		devh->endpoint_in, devh->endpoint_out);
+
+	if (getenv("JAYLINK_CHUNK_SIZE") != NULL) {
+		int nsz = atoi(getenv("JAYLINK_CHUNK_SIZE"));
+		if (nsz <= 0) {
+			log_dbg(ctx, "JAYLINK_CHUNK_SIZE %d invalid, using %d.", nsz, CHUNK_SIZE);
+		} else {
+			log_dbg(ctx, "overriding jaylink CHUNK_SIZE to %d.", nsz);
+			CHUNK_SIZE = (size_t)nsz;
+		}
+	}
 
 	/* Buffer size must be a multiple of CHUNK_SIZE bytes. */
 	devh->buffer_size = CHUNK_SIZE;
